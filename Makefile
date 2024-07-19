@@ -83,6 +83,10 @@ vet: .timestamps/.vet.time
 	@mkdir -p .timestamps
 	@touch $@
 
+.PHONY: test # run tests
+test:
+	go test ./...
+
 .PHONY: install # go install
 install:
 	go install -ldflags "$(LDFLAGS)"
