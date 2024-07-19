@@ -80,6 +80,10 @@ func renderMarkdown(w io.Writer, n ast.Node, source []byte) {
 			}
 		}
 	case *ast.Heading:
+		for i := 0; i < 5; i++ {
+			fmt.Fprintln(w)
+		}
+
 		fmt.Fprintf(w, "%s ", strings.Repeat("#", v.Level))
 		for c := v.FirstChild(); c != nil; c = c.NextSibling() {
 			renderMarkdown(w, c, source)
@@ -179,6 +183,8 @@ func renderMarkdown(w io.Writer, n ast.Node, source []byte) {
 			renderMarkdown(w, c, source)
 		}
 		fmt.Fprint(w, "`")
+	case *ast.Image:
+		fmt.Fprintf(w, "![%s](%s)", v.Text(source), v.Destination)
 	default:
 		if n.Type() == ast.TypeBlock {
 			for i := 0; i < n.Lines().Len(); i++ {
