@@ -19,7 +19,12 @@ func renderList(w io.Writer, n *ast.List, source []byte, level int) {
 		} else {
 			fmt.Fprint(w, "- ")
 		}
-		renderMarkdown(w, c, source, level+1)
+		renderListItem(w, c.(*ast.ListItem), source, level+1)
+		if c.NextSibling() != nil {
+			fmt.Fprintln(w)
+		}
+	}
+	if n.Parent().Kind() != ast.KindListItem {
 		fmt.Fprintln(w)
 	}
 }

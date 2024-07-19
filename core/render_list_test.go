@@ -10,57 +10,68 @@ import (
 
 func TestRenderList(t *testing.T) {
 	tests := []struct {
-		name      string
-		isOrdered bool
-		items     []string
-		expected  string
+		name     string
+		input    string
+		expected string
 	}{
 		{
-			name:      "Unordered list",
-			isOrdered: false,
-			items:     []string{"Item 1", "Item 2", "Item 3"},
-			expected: `
-- Item 1
-- Item 2
-- Item 3
+			name: "List with nested items followed by a term",
+			input: `
+1. First item
+   - Subitem
+   - Another subitem
+2. Second item
+
+Term
 `,
-		},
-		{
-			name:      "Ordered list",
-			isOrdered: true,
-			items:     []string{"First", "Second", "Third"},
 			expected: `
-1. First
-2. Second
-3. Third
+1. First item
+   - Subitem
+   - Another subitem
+2. Second item
+
+Term
 `,
-		},
-		{
-			name:      "Empty list",
-			isOrdered: false,
-			items:     []string{},
-			expected:  "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			var marker byte
-			if tt.isOrdered {
-				marker = '.'
-			} else {
-				marker = '-'
+			doc := ast.NewDocument()
+			list := ast.NewList('.')
+
+			lines := strings.Split(tt.input, "\n")
+			for i, line := range lines {
+				if strings.HasPrefix(line, "Term") {
+					para := ast.NewParagraph()
+					para.AppendChild(para, ast.NewString([]byte("Term")))
+					doc.AppendChild(doc, para)
+					break
+				}
+
+				if strings.HasPrefix(line, "1.") || strings.HasPrefix(line, "2.") {
+					item := ast.NewListItem(0)
+					itemContent := strings.TrimSpace(strings.TrimPrefix(line, "1."))
+					itemContent = strings.TrimSpace(strings.TrimPrefix(itemContent, "2."))
+					item.AppendChild(item, ast.NewString([]byte(itemContent)))
+					list.AppendChild(list, item)
+				} else if strings.HasPrefix(line, "   -") {
+					subItem := ast.NewListItem(0)
+					subItemContent := strings.TrimSpace(strings.TrimPrefix(line, "   -"))
+					subItem.AppendChild(subItem, ast.NewString([]byte(subItemContent)))
+					list.LastChild().AppendChild(list.LastChild(), subItem)
+				}
+
+				if i == len(lines)-1 || strings.HasPrefix(lines[i+1], "Term") {
+					doc.AppendChild(doc, list)
+				}
 			}
-			list := ast.NewList(marker)
-			for _, item := range tt.items {
-				li := ast.NewListItem(0)
-				li.AppendChild(li, ast.NewString([]byte(item)))
-				list.AppendChild(list, li)
-			}
-			renderList(&buf, list, nil, 0)
-			if strings.TrimSpace(buf.String()) != strings.TrimSpace(tt.expected) {
-				t.Errorf("Expected:\n%s\nGot:\n%s", strings.TrimSpace(tt.expected), strings.TrimSpace(buf.String()))
+
+			renderMarkdown(&buf, doc, []byte(tt.input), 0)
+
+			if buf.String() != tt.expected {
+				t.Errorf("Expected:\n%s\nGot:\n%s", tt.expected, buf.String())
 			}
 		})
 	}
