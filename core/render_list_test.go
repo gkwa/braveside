@@ -35,6 +35,12 @@ func TestRenderList(t *testing.T) {
 3. Third
 `,
 		},
+		{
+			name:      "Empty list",
+			isOrdered: false,
+			items:     []string{},
+			expected:  "",
+		},
 	}
 
 	for _, tt := range tests {

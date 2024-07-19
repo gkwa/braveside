@@ -23,4 +23,3 @@ func renderList(w io.Writer, n *ast.List, source []byte, level int) {
 		fmt.Fprintln(w)
 	}
 }
-

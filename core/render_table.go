@@ -37,4 +37,3 @@ func renderTable(w io.Writer, n *east.Table, source []byte) {
 		}
 	}
 }
-

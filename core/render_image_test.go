@@ -26,6 +26,12 @@ func TestRenderImage(t *testing.T) {
 			src:      "image.png",
 			expected: "![](image.png)",
 		},
+		{
+			name:     "Image with special characters",
+			alt:      "Image & Text",
+			src:      "https://example.com/image.gif?param=value",
+			expected: "![Image & Text](https://example.com/image.gif?param=value)",
+		},
 	}
 
 	for _, tt := range tests {

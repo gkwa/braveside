@@ -31,6 +31,15 @@ with multiple lines.
 
 `,
 		},
+		{
+			name:    "Paragraph with definition",
+			content: "Term\n: Definition",
+			expected: `
+Term
+: Definition
+
+`,
+		},
 	}
 
 	for _, tt := range tests {

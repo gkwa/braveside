@@ -29,6 +29,20 @@ func TestRenderTable(t *testing.T) {
 | Row 2, Col 1 | Row 2, Col 2 |
 `,
 		},
+		{
+			name: "Table with empty cells",
+			rows: [][]string{
+				{"Header 1", "Header 2", "Header 3"},
+				{"Row 1, Col 1", "", "Row 1, Col 3"},
+				{"", "Row 2, Col 2", ""},
+			},
+			expected: `
+| Header 1     | Header 2     | Header 3     |
+|--------------|--------------|--------------|
+| Row 1, Col 1 |              | Row 1, Col 3 |
+|              | Row 2, Col 2 |              |
+`,
+		},
 	}
 
 	for _, tt := range tests {
