@@ -1,4 +1,6 @@
-
+---
+filetype: product
+---
 
 
 
