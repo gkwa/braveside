@@ -95,8 +95,11 @@ func renderMarkdown(w io.Writer, n ast.Node, source []byte) {
 		}
 		fmt.Fprintln(w)
 	case *ast.Link:
-		linkText := v.Text(source)
-		fmt.Fprintf(w, "[%s](%s)", linkText, v.Destination)
+		fmt.Fprintf(w, "[")
+		for c := v.FirstChild(); c != nil; c = c.NextSibling() {
+			renderMarkdown(w, c, source)
+		}
+		fmt.Fprintf(w, "](%s)", v.Destination)
 	case *ast.Text:
 		fmt.Fprint(w, string(v.Text(source)))
 	case *ast.String:
