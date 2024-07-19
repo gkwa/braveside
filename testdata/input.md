@@ -23,3 +23,4 @@ Here's some `inline code` and a code block:
 func main() {
    fmt.Println("Hello, World!")
 }
+```

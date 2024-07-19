@@ -118,7 +118,6 @@ func renderMarkdown(w io.Writer, n ast.Node, source []byte) {
 		for c := v.FirstChild(); c != nil; c = c.NextSibling() {
 			renderMarkdown(w, c, source)
 		}
-		fmt.Fprintln(w)
 	case *ast.FencedCodeBlock:
 		fmt.Fprint(w, "```")
 		language := v.Language(source)
