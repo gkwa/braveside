@@ -51,6 +51,8 @@ func renderMarkdown(w io.Writer, n ast.Node, source []byte, level int) {
 		renderText(w, v, source)
 	case *ast.TextBlock:
 		renderTextBlock(w, v, source, level)
+	case *ast.ThematicBreak:
+		renderThematicBreak(w)
 	default:
 		renderDefault(w, n, source)
 	}
