@@ -1,6 +1,16 @@
+
+
+
+
+
 # Hello, World!
 
 This is a **test** file for our Goldmark AST roundtrip.
+
+
+
+
+
 
 ## Features
 
@@ -24,3 +34,27 @@ func main() {
    fmt.Println("Hello, World!")
 }
 ```
+
+![Seaweed Salad photo](https://static.spotapps.co/spots/a4/3ebb855c2348c68c7b94a4956d9662/full)
+
+---
+
+[OpenAI](https://www.openai.com)
+
+~~strikethrough~~
+
+1. First item
+   - Subitem
+   - Another subitem
+2. Second item
+
+Term
+: Definition
+
+Here's a sentence with a footnote.[^1]
+
+[^1]: This is the footnote.
+
+:smile: :heart: :thumbsup:
+
+When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
