@@ -7,11 +7,6 @@ import (
 	"os/exec"
 
 	"github.com/go-logr/logr"
-	"github.com/yuin/goldmark"
-	meta "github.com/yuin/goldmark-meta"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/text"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,7 +16,8 @@ func Hello(logger logr.Logger, showAST bool) error {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
-	output, err := ProcessMarkdown(input, showAST)
+	processor := NewMarkdownProcessor()
+	output, err := processor.ProcessMarkdown(input, showAST)
 	if err != nil {
 		return fmt.Errorf("failed to process markdown: %w", err)
 	}
@@ -40,18 +36,8 @@ func Hello(logger logr.Logger, showAST bool) error {
 	return nil
 }
 
-func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
-	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-	)
-
-	context := parser.NewContext()
-	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
-
-	metaData := meta.Get(context)
+func (mp *MarkdownProcessor) ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
+	doc, metaData := mp.parse(input)
 
 	if showAST {
 		fmt.Println("AST structure:")

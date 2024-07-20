@@ -70,7 +70,8 @@ Here's a sentence with a footnote.[^1]
 When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
 `
 
-	output, err := ProcessMarkdown([]byte(input), false)
+	processor := NewMarkdownProcessor()
+	output, err := processor.ProcessMarkdown([]byte(input), false)
 	if err != nil {
 		t.Fatalf("Failed to process markdown: %v", err)
 	}

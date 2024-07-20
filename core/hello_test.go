@@ -48,9 +48,10 @@ This is a test document without frontmatter.
 		},
 	}
 
+	processor := NewMarkdownProcessor()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, err := ProcessMarkdown([]byte(tt.input), false)
+			output, err := processor.ProcessMarkdown([]byte(tt.input), false)
 			if err != nil {
 				t.Fatalf("ProcessMarkdown() error = %v", err)
 			}
