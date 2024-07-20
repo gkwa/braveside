@@ -3,7 +3,6 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 
@@ -16,16 +15,26 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Hello(logger logr.Logger, showAST bool) {
-	logger.V(1).Info("Debug: Entering Hello function")
-	logger.Info("Hello, World!")
-	logger.V(1).Info("Debug: Exiting Hello function")
-
+func Hello(logger logr.Logger, showAST bool) error {
 	input, err := os.ReadFile("testdata/input.md")
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
+	output, err := ProcessMarkdown(input, showAST)
+	if err != nil {
+		return fmt.Errorf("failed to process markdown: %w", err)
+	}
+
+	err = os.WriteFile("output.md", output, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
+	}
+
+	return compareDiff(logger, "testdata/input.md", "output.md")
+}
+
+func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
@@ -37,34 +46,37 @@ func Hello(logger logr.Logger, showAST bool) {
 	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
 
 	metaData := meta.Get(context)
-	fmt.Printf("Frontmatter: %v\n", metaData)
 
 	if showAST {
 		fmt.Println("AST structure:")
 		printNode(doc, input, 0)
 	}
 
-	var buf bytes.Buffer
-	renderMarkdown(&buf, doc, input, 0)
+	var contentBuf bytes.Buffer
+	renderMarkdown(&contentBuf, doc, input, 0)
 
-	frontMatter, err := yaml.Marshal(metaData)
-	if err != nil {
-		log.Fatal(err)
+	var frontMatterBuf bytes.Buffer
+	encoder := yaml.NewEncoder(&frontMatterBuf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(metaData); err != nil {
+		return nil, err
 	}
+	encoder.Close()
 
-	output := fmt.Sprintf("---\n%s---\n\n%s", frontMatter, buf.String())
+	output := fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String())
+	return []byte(output), nil
+}
 
-	err = os.WriteFile("output.md", []byte(output), 0o644)
-	if err != nil {
-		log.Fatal(err)
+func compareDiff(logger logr.Logger, file1, file2 string) error {
+	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", file1, file2)
+	diff, err := cmd.CombinedOutput()
+	if err != nil && err.(*exec.ExitError).ExitCode() != 1 {
+		return fmt.Errorf("diff command failed: %w", err)
 	}
-
-	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", "testdata/input.md", "output.md")
-	diff, _ := cmd.CombinedOutput()
 	if len(diff) > 0 {
-		fmt.Println("Differences found:")
-		fmt.Println(string(diff))
+		logger.Info("Differences found:", "diff", string(diff))
 	} else {
-		fmt.Println("No differences found between input.md and output.md")
+		logger.Info("No differences found between input.md and output.md")
 	}
+	return nil
 }

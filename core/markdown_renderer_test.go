@@ -1,29 +1,21 @@
 package core
 
 import (
-	"bytes"
 	"os"
 	"os/exec"
 	"testing"
-
-	"github.com/yuin/goldmark"
-	meta "github.com/yuin/goldmark-meta"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/text"
-	"gopkg.in/yaml.v3"
 )
 
 func TestFullMarkdownRendering(t *testing.T) {
 	input := `---
 filetype: product
 test:
-- this and that
-- test2
+  - this and that
+  - test2
 x:
- "y":
- - a
- - b
+  "y":
+    - a
+    - b
 ---
 
 # Hello, World!
@@ -49,7 +41,7 @@ Here's some ` + "`inline code`" + ` and a code block:
 
 ` + "```go" + `
 func main() {
-  fmt.Println("Hello, World!")
+ fmt.Println("Hello, World!")
 }
 ` + "```" + `
 
@@ -62,8 +54,8 @@ func main() {
 ~~strikethrough~~
 
 1. First item
-  - Subitem
-  - Another subitem
+ - Subitem
+ - Another subitem
 2. Second item
 
 Term
@@ -78,30 +70,10 @@ Here's a sentence with a footnote.[^1]
 When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
 `
 
-	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-	)
-
-	context := parser.NewContext()
-	doc := md.Parser().Parse(text.NewReader([]byte(input)), parser.WithContext(context))
-
-	metaData := meta.Get(context)
-
-	var contentBuf bytes.Buffer
-	renderMarkdown(&contentBuf, doc, []byte(input), 0)
-
-	var frontMatterBuf bytes.Buffer
-	encoder := yaml.NewEncoder(&frontMatterBuf)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(metaData); err != nil {
-		t.Fatalf("Failed to encode frontmatter: %v", err)
+	output, err := ProcessMarkdown([]byte(input), false)
+	if err != nil {
+		t.Fatalf("Failed to process markdown: %v", err)
 	}
-	encoder.Close()
-
-	output := "---\n" + frontMatterBuf.String() + "---\n\n" + contentBuf.String()
 
 	// Write input and output to temporary files
 	tmpInput := "tmp_input.md"
@@ -109,12 +81,12 @@ When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$
 	defer os.Remove(tmpInput)
 	defer os.Remove(tmpOutput)
 
-	err := os.WriteFile(tmpInput, []byte(input), 0o644)
+	err = os.WriteFile(tmpInput, []byte(input), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write input to temporary file: %v", err)
 	}
 
-	err = os.WriteFile(tmpOutput, []byte(output), 0o644)
+	err = os.WriteFile(tmpOutput, output, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write output to temporary file: %v", err)
 	}
