@@ -31,7 +31,13 @@ func Hello(logger logr.Logger, showAST bool) error {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	return compareDiff(logger, "testdata/input.md", "output.md")
+	diff, err := compareDiff(logger, "testdata/input.md", "output.md")
+	if err != nil {
+		return fmt.Errorf("error comparing, %v", err)
+	}
+
+	fmt.Println(diff)
+	return nil
 }
 
 func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
@@ -67,16 +73,20 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	return []byte(output), nil
 }
 
-func compareDiff(logger logr.Logger, file1, file2 string) error {
+func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
 	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", file1, file2)
 	diff, err := cmd.CombinedOutput()
 	if err != nil && err.(*exec.ExitError).ExitCode() != 1 {
-		return fmt.Errorf("diff command failed: %w", err)
+		return "", fmt.Errorf("diff command failed: %w", err)
 	}
+
+	var result string
 	if len(diff) > 0 {
-		logger.Info("Differences found:", "diff", string(diff))
+		result = fmt.Sprintf("Differences found:\ndiff%s", string(diff))
 	} else {
-		logger.Info("No differences found between input.md and output.md")
+		result = "No differences found between input.md and output.md"
+		logger.Info(result)
 	}
-	return nil
+
+	return result, nil
 }
