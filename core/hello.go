@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,40 +15,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type contextKey int
-
-const (
-	loggerKey contextKey = iota
-	showASTKey
-)
-
-func ContextWithLogger(ctx context.Context, logger logr.Logger) context.Context {
-	return context.WithValue(ctx, loggerKey, logger)
-}
-
-func LoggerFrom(ctx context.Context) logr.Logger {
-	logger, _ := ctx.Value(loggerKey).(logr.Logger)
-	return logger
-}
-
-func ContextWithShowAST(ctx context.Context, showAST bool) context.Context {
-	return context.WithValue(ctx, showASTKey, showAST)
-}
-
-func ShowASTFrom(ctx context.Context) bool {
-	showAST, _ := ctx.Value(showASTKey).(bool)
-	return showAST
-}
-
-func Hello(ctx context.Context) error {
-	logger := LoggerFrom(ctx)
-
+func Hello(logger logr.Logger, showAST bool) error {
 	input, err := os.ReadFile("testdata/input.md")
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
-	output, err := ProcessMarkdown(ctx, input)
+	output, err := ProcessMarkdown(input, showAST)
 	if err != nil {
 		return fmt.Errorf("failed to process markdown: %w", err)
 	}
@@ -62,9 +34,7 @@ func Hello(ctx context.Context) error {
 	return compareDiff(logger, "testdata/input.md", "output.md")
 }
 
-func ProcessMarkdown(ctx context.Context, input []byte) ([]byte, error) {
-	showAST := ShowASTFrom(ctx)
-
+func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
@@ -74,6 +44,7 @@ func ProcessMarkdown(ctx context.Context, input []byte) ([]byte, error) {
 
 	context := parser.NewContext()
 	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
+
 	metaData := meta.Get(context)
 
 	if showAST {
@@ -102,12 +73,10 @@ func compareDiff(logger logr.Logger, file1, file2 string) error {
 	if err != nil && err.(*exec.ExitError).ExitCode() != 1 {
 		return fmt.Errorf("diff command failed: %w", err)
 	}
-
 	if len(diff) > 0 {
 		logger.Info("Differences found:", "diff", string(diff))
 	} else {
 		logger.Info("No differences found between input.md and output.md")
 	}
-
 	return nil
 }
