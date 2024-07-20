@@ -50,8 +50,7 @@ This is a test document without frontmatter.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			SetShowAST(false)
-			output, err := ProcessMarkdown([]byte(tt.input))
+			output, err := ProcessMarkdown([]byte(tt.input), false)
 			if err != nil {
 				t.Fatalf("ProcessMarkdown() error = %v", err)
 			}
@@ -66,12 +65,14 @@ func TestHello(t *testing.T) {
 	zapLogger := zaptest.NewLogger(t)
 	logger := zapr.NewLogger(zapLogger)
 
+	// Create a temporary directory for test files
 	tempDir, err := os.MkdirTemp("", "testdata")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
+	// Create a temporary input file
 	inputPath := tempDir + "/input.md"
 	inputContent := []byte(`# Test Input
 
@@ -81,6 +82,7 @@ This is a test input file.`)
 		t.Fatalf("Failed to create test input file: %v", err)
 	}
 
+	// Change working directory to the temp directory
 	oldWd, _ := os.Getwd()
 	err = os.Chdir(tempDir)
 	if err != nil {
@@ -92,26 +94,29 @@ This is a test input file.`)
 		}
 	}()
 
+	// Create testdata directory
 	err = os.Mkdir("testdata", 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create testdata directory: %v", err)
 	}
 
+	// Move input file to testdata directory
 	err = os.Rename(inputPath, "testdata/input.md")
 	if err != nil {
 		t.Fatalf("Failed to move input file: %v", err)
 	}
 
+	// Redirect stdout to capture output
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	SetShowAST(false)
-	err = Hello(logger)
+	err = Hello(logger, false)
 	if err != nil {
 		t.Fatalf("Hello() error = %v", err)
 	}
 
+	// Restore stdout
 	w.Close()
 	os.Stdout = oldStdout
 

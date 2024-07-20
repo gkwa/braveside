@@ -14,8 +14,7 @@ var helloCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := LoggerFrom(cmd.Context())
 		logger.Info("Running hello command")
-		core.SetShowAST(showAST)
-		return core.Hello(logger)
+		return core.Hello(logger, showAST)
 	},
 }
 

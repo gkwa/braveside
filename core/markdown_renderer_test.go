@@ -70,11 +70,12 @@ Here's a sentence with a footnote.[^1]
 When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
 `
 
-	output, err := ProcessMarkdown([]byte(input))
+	output, err := ProcessMarkdown([]byte(input), false)
 	if err != nil {
 		t.Fatalf("Failed to process markdown: %v", err)
 	}
 
+	// Write input and output to temporary files
 	tmpInput := "tmp_input.md"
 	tmpOutput := "tmp_output.md"
 	defer os.Remove(tmpInput)
@@ -90,11 +91,12 @@ When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$
 		t.Fatalf("Failed to write output to temporary file: %v", err)
 	}
 
+	// Run diff command
 	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", tmpInput, tmpOutput)
 	diff, err := cmd.CombinedOutput()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
-			if exitError.ExitCode() != 1 {
+			if exitError.ExitCode() != 1 { // diff returns 1 if files are different, which we expect
 				t.Errorf("diff command failed with exit code %d: %s", exitError.ExitCode(), string(diff))
 			}
 		} else {
