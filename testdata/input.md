@@ -1,3 +1,14 @@
+---
+filetype: product
+test:
+- this and that
+- test2
+x:
+  "y":
+  - a
+  - b
+---
+
 
 
 

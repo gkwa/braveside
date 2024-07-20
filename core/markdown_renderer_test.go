@@ -7,25 +7,28 @@ import (
 	"testing"
 
 	"github.com/yuin/goldmark"
+	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
+	"gopkg.in/yaml.v3"
 )
 
 func TestFullMarkdownRendering(t *testing.T) {
-	input := `
-
-
-
+	input := `---
+filetype: product
+test:
+- this and that
+- test2
+x:
+ "y":
+ - a
+ - b
+---
 
 # Hello, World!
 
 This is a **test** file for our Goldmark AST roundtrip.
-
-
-
-
-
 
 ## Features
 
@@ -44,9 +47,9 @@ This is a **test** file for our Goldmark AST roundtrip.
 
 Here's some ` + "`inline code`" + ` and a code block:
 
-` + "```" + `go
+` + "```go" + `
 func main() {
-   fmt.Println("Hello, World!")
+  fmt.Println("Hello, World!")
 }
 ` + "```" + `
 
@@ -59,8 +62,8 @@ func main() {
 ~~strikethrough~~
 
 1. First item
-   - Subitem
-   - Another subitem
+  - Subitem
+  - Another subitem
 2. Second item
 
 Term
@@ -76,18 +79,29 @@ When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$
 `
 
 	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, extension.DefinitionList),
+		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
 		),
 	)
 
-	doc := md.Parser().Parse(text.NewReader([]byte(input)))
+	context := parser.NewContext()
+	doc := md.Parser().Parse(text.NewReader([]byte(input)), parser.WithContext(context))
 
-	var buf bytes.Buffer
-	renderMarkdown(&buf, doc, []byte(input), 0)
+	metaData := meta.Get(context)
 
-	output := buf.String()
+	var contentBuf bytes.Buffer
+	renderMarkdown(&contentBuf, doc, []byte(input), 0)
+
+	var frontMatterBuf bytes.Buffer
+	encoder := yaml.NewEncoder(&frontMatterBuf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(metaData); err != nil {
+		t.Fatalf("Failed to encode frontmatter: %v", err)
+	}
+	encoder.Close()
+
+	output := "---\n" + frontMatterBuf.String() + "---\n\n" + contentBuf.String()
 
 	// Write input and output to temporary files
 	tmpInput := "tmp_input.md"
