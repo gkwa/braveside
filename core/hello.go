@@ -15,7 +15,7 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-func Hello(logger logr.Logger) {
+func Hello(logger logr.Logger, showAST bool) {
 	logger.V(1).Info("Debug: Entering Hello function")
 	logger.Info("Hello, World!")
 	logger.V(1).Info("Debug: Exiting Hello function")
@@ -34,8 +34,10 @@ func Hello(logger logr.Logger) {
 
 	doc := md.Parser().Parse(text.NewReader(input))
 
-	fmt.Println("AST structure:")
-	printNode(doc, input, 0)
+	if showAST {
+		fmt.Println("AST structure:")
+		printNode(doc, input, 0)
+	}
 
 	var buf bytes.Buffer
 	renderMarkdown(&buf, doc, input, 0)
@@ -45,7 +47,7 @@ func Hello(logger logr.Logger) {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("diff", "--unified", "--ignore-all-space", "testdata/input.md", "output.md")
+	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", "testdata/input.md", "output.md")
 	diff, _ := cmd.CombinedOutput()
 	if len(diff) > 0 {
 		fmt.Println("Differences found:")

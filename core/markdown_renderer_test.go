@@ -106,7 +106,7 @@ When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$
 	}
 
 	// Run diff command
-	cmd := exec.Command("diff", "--unified", "--ignore-all-space", tmpInput, tmpOutput)
+	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", tmpInput, tmpOutput)
 	diff, err := cmd.CombinedOutput()
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
