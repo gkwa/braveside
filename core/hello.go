@@ -61,16 +61,22 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	var contentBuf bytes.Buffer
 	renderMarkdown(&contentBuf, doc, input, 0)
 
-	var frontMatterBuf bytes.Buffer
-	encoder := yaml.NewEncoder(&frontMatterBuf)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(metaData); err != nil {
-		return nil, err
-	}
-	encoder.Close()
+	var output []byte
+	if len(metaData) > 0 {
+		var frontMatterBuf bytes.Buffer
+		encoder := yaml.NewEncoder(&frontMatterBuf)
+		encoder.SetIndent(2)
+		if err := encoder.Encode(metaData); err != nil {
+			return nil, err
+		}
+		encoder.Close()
 
-	output := fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String())
-	return []byte(output), nil
+		output = []byte(fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String()))
+	} else {
+		output = contentBuf.Bytes()
+	}
+
+	return output, nil
 }
 
 func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
