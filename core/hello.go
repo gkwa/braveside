@@ -15,13 +15,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Hello(logger logr.Logger, showAST bool) error {
+var showAST bool
+
+func SetShowAST(value bool) {
+	showAST = value
+}
+
+func Hello(logger logr.Logger) error {
 	input, err := os.ReadFile("testdata/input.md")
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
-	output, err := ProcessMarkdown(input, showAST)
+	output, err := ProcessMarkdown(input)
 	if err != nil {
 		return fmt.Errorf("failed to process markdown: %w", err)
 	}
@@ -40,7 +46,7 @@ func Hello(logger logr.Logger, showAST bool) error {
 	return nil
 }
 
-func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
+func ProcessMarkdown(input []byte) ([]byte, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
@@ -50,7 +56,6 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 
 	context := parser.NewContext()
 	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
-
 	metaData := meta.Get(context)
 
 	if showAST {
@@ -72,7 +77,6 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 			return nil, err
 		}
 		encoder.Close()
-
 		output = []byte(fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String()))
 	}
 
