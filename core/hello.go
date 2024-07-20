@@ -62,7 +62,9 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	renderMarkdown(&contentBuf, doc, input, 0)
 
 	var output []byte
-	if len(metaData) > 0 {
+	if len(metaData) == 0 {
+		output = contentBuf.Bytes()
+	} else {
 		var frontMatterBuf bytes.Buffer
 		encoder := yaml.NewEncoder(&frontMatterBuf)
 		encoder.SetIndent(2)
@@ -72,8 +74,6 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 		encoder.Close()
 
 		output = []byte(fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String()))
-	} else {
-		output = contentBuf.Bytes()
 	}
 
 	return output, nil
