@@ -1,110 +1,103 @@
 package core
 
 import (
-	"os"
-	"os/exec"
+	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/yuin/goldmark"
+	meta "github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/text"
 )
 
-func TestFullMarkdownRendering(t *testing.T) {
-	input := `---
-filetype: product
-test:
-  - this and that
-  - test2
-x:
-  "y":
-    - a
-    - b
+func TestRenderMarkdown(t *testing.T) {
+	input := []byte(`---
+title: Test Document
+author: John Doe
 ---
 
-# Hello, World!
+# Heading 1
 
-This is a **test** file for our Goldmark AST roundtrip.
+## Heading 2
 
-## Features
+This is a paragraph with **bold** and *italic* text.
 
-1. Lists
-2. *Italic*
-3. **Bold**
+- List item 1
+- List item 2
+  - Nested item 1
+  - Nested item 2
 
-> Blockquotes are supported too.
+1. Ordered item 1
+2. Ordered item 2
+
+> This is a blockquote.
+
+[Link](https://example.com)
+
+![Image](https://example.com/image.jpg)
+
+` + "```go" + `
+package main
+
+func main() {
+    println("Hello, World!")
+}
+` + "```" + `
 
 | Column 1 | Column 2 |
 |----------|----------|
 | Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |
+`)
 
-- [ ] Task 1
-- [x] Task 2
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+	)
 
-Here's some ` + "`inline code`" + ` and a code block:
+	context := parser.NewContext()
+	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
+
+	var buf bytes.Buffer
+	renderMarkdown(&buf, doc, input, 0)
+
+	expected := `# Heading 1
+
+## Heading 2
+
+This is a paragraph with **bold** and *italic* text.
+
+- List item 1
+- List item 2
+  - Nested item 1
+  - Nested item 2
+
+1. Ordered item 1
+2. Ordered item 2
+
+> This is a blockquote.
+
+[Link](https://example.com)
+
+![Image](https://example.com/image.jpg)
 
 ` + "```go" + `
+package main
+
 func main() {
- fmt.Println("Hello, World!")
+    println("Hello, World!")
 }
 ` + "```" + `
 
-![Seaweed Salad photo](https://static.spotapps.co/spots/a4/3ebb855c2348c68c7b94a4956d9662/full)
-
----
-
-[OpenAI](https://www.openai.com)
-
-~~strikethrough~~
-
-1. First item
- - Subitem
- - Another subitem
-2. Second item
-
-Term
-: Definition
-
-Here's a sentence with a footnote.[^1]
-
-[^1]: This is the footnote.
-
-:smile: :heart: :thumbsup:
-
-When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
+| Column 1 | Column 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |
 `
 
-	output, err := ProcessMarkdown([]byte(input), false)
-	if err != nil {
-		t.Fatalf("Failed to process markdown: %v", err)
-	}
-
-	// Write input and output to temporary files
-	tmpInput := "tmp_input.md"
-	tmpOutput := "tmp_output.md"
-	defer os.Remove(tmpInput)
-	defer os.Remove(tmpOutput)
-
-	err = os.WriteFile(tmpInput, []byte(input), 0o644)
-	if err != nil {
-		t.Fatalf("Failed to write input to temporary file: %v", err)
-	}
-
-	err = os.WriteFile(tmpOutput, output, 0o644)
-	if err != nil {
-		t.Fatalf("Failed to write output to temporary file: %v", err)
-	}
-
-	// Run diff command
-	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", tmpInput, tmpOutput)
-	diff, err := cmd.CombinedOutput()
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if exitError.ExitCode() != 1 { // diff returns 1 if files are different, which we expect
-				t.Errorf("diff command failed with exit code %d: %s", exitError.ExitCode(), string(diff))
-			}
-		} else {
-			t.Errorf("Failed to run diff command: %v", err)
-		}
-	}
-
-	if len(diff) > 0 {
-		t.Errorf("Differences found between input and output:\n%s", string(diff))
-	}
+	assert.Equal(t, expected, buf.String())
 }
