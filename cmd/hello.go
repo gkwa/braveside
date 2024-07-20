@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/gkwa/braveside/core"
 	"github.com/spf13/cobra"
 )
@@ -16,8 +14,7 @@ var helloCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := LoggerFrom(cmd.Context())
 		logger.Info("Running hello command")
-		ctx := context.WithValue(cmd.Context(), core.ShowASTKey, showAST)
-		return core.Hello(ctx, logger)
+		return core.Hello(logger, showAST)
 	},
 }
 

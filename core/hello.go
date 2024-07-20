@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,34 +15,45 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type contextKey string
+func Hello(logger logr.Logger, showAST bool) error {
+	input, err := os.ReadFile("testdata/input.md")
+	if err != nil {
+		return fmt.Errorf("failed to read input file: %w", err)
+	}
 
-const ShowASTKey contextKey = "showAST"
+	output, err := ProcessMarkdown(input, showAST)
+	if err != nil {
+		return fmt.Errorf("failed to process markdown: %w", err)
+	}
 
-type MarkdownProcessor interface {
-	ProcessMarkdown(input []byte) ([]byte, error)
+	err = os.WriteFile("output.md", output, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
+	}
+
+	diff, err := compareDiff(logger, "testdata/input.md", "output.md")
+	if err != nil {
+		return fmt.Errorf("error comparing, %v", err)
+	}
+
+	fmt.Println(diff)
+	return nil
 }
 
-type DefaultMarkdownProcessor struct {
-	showAST bool
-}
-
-func NewDefaultMarkdownProcessor(showAST bool) *DefaultMarkdownProcessor {
-	return &DefaultMarkdownProcessor{showAST: showAST}
-}
-
-func (p *DefaultMarkdownProcessor) ProcessMarkdown(input []byte) ([]byte, error) {
+func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
 		),
 	)
+
 	context := parser.NewContext()
 	doc := md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
+
 	metaData := meta.Get(context)
 
-	if p.showAST {
+	if showAST {
 		fmt.Println("AST structure:")
 		printNode(doc, input, 0)
 	}
@@ -63,32 +73,6 @@ func (p *DefaultMarkdownProcessor) ProcessMarkdown(input []byte) ([]byte, error)
 	return []byte(output), nil
 }
 
-func Hello(ctx context.Context, logger logr.Logger) error {
-	input, err := os.ReadFile("testdata/input.md")
-	if err != nil {
-		return fmt.Errorf("failed to read input file: %w", err)
-	}
-
-	showAST, _ := ctx.Value(ShowASTKey).(bool)
-	processor := NewDefaultMarkdownProcessor(showAST)
-	output, err := processor.ProcessMarkdown(input)
-	if err != nil {
-		return fmt.Errorf("failed to process markdown: %w", err)
-	}
-
-	err = os.WriteFile("output.md", output, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to write output file: %w", err)
-	}
-
-	diff, err := compareDiff(logger, "testdata/input.md", "output.md")
-	if err != nil {
-		return fmt.Errorf("error comparing, %v", err)
-	}
-	fmt.Println(diff)
-	return nil
-}
-
 func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
 	opts := []string{
 		"--unified",
@@ -101,6 +85,7 @@ func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
 	if err != nil && err.(*exec.ExitError).ExitCode() != 1 {
 		return "", fmt.Errorf("diff command failed: %w", err)
 	}
+
 	var result string
 	if len(diff) > 0 {
 		result = fmt.Sprintf("Differences found:\ndiff%s", string(diff))
@@ -108,5 +93,6 @@ func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
 		result = "No differences found between input.md and output.md"
 		logger.Info(result)
 	}
+
 	return result, nil
 }

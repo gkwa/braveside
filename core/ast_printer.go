@@ -7,13 +7,7 @@ import (
 )
 
 func printNode(n ast.Node, source []byte, level int) {
-	indent := ""
-	for i := 0; i < level; i++ {
-		indent += "  "
-	}
-
-	fmt.Printf("%s%s: %s\n", indent, n.Kind().String(), string(n.Text(source)))
-
+	fmt.Printf("%s%T\n", indent(level), n)
 	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 		printNode(c, source, level+1)
 	}
