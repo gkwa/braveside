@@ -74,7 +74,13 @@ func ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
 }
 
 func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
-	cmd := exec.Command("diff", "--unified", "--ignore-blank-lines", "--ignore-all-space", file1, file2)
+	opts := []string{
+		"--unified",
+		"--ignore-blank-lines",
+		"--ignore-all-space",
+	}
+	args := append(opts, file1, file2)
+	cmd := exec.Command("diff", args...)
 	diff, err := cmd.CombinedOutput()
 	if err != nil && err.(*exec.ExitError).ExitCode() != 1 {
 		return "", fmt.Errorf("diff command failed: %w", err)
