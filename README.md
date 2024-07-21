@@ -52,16 +52,6 @@ X<sup>2</sup>
 ```
 Renders as: X<sup>2</sup>
 
-### Footnotes
-
-Example:
-```
-Here's a sentence with a footnote.[^1]
-
-[^1]: This is the footnote.
-```
-Renders with a superscript number and the footnote at the bottom of the document.
-
 ### Color models (HEX, RGB, HSL)
 
 Examples:
@@ -79,23 +69,6 @@ Example:
 [Link to Headers](#headers)
 ```
 This creates a link to a section within the document.
-
-### Task lists
-
-Example:
-```
-- [x] Completed task
-- [ ] Incomplete task
-```
-Renders as checkboxes that can be interactively checked on GitHub.
-
-### Mentions (people and teams)
-
-Example:
-```
-@github/support What do you think about these updates?
-```
-This notifies the mentioned team or individual on GitHub.
 
 ### Issue and pull request references
 
@@ -120,18 +93,6 @@ Example:
 :smile: :heart: :thumbsup:
 ```
 Renders as: 😄 ❤️ 👍
-
-### Alerts
-
-Examples:
-```
-> [!NOTE]
-> This is a note.
-
-> [!WARNING]
-> This is a warning.
-```
-These render as distinctively styled alert boxes.
 
 ### HTML comments for hiding content
 

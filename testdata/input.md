@@ -61,8 +61,6 @@ func main() {
    - Another subitem
 2. Second item
 
-H<sub>2</sub>O
-
 [Link to Headers](#headers)
 
 Term
@@ -75,3 +73,18 @@ Here's a sentence with a footnote.[^1]
 :smile: :heart: :thumbsup:
 
 When $a \ne 0$, there are two solutions to $(ax^2 + bx + c = 0)$ and they are $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
+
+
+```
+> [!NOTE]
+> This is a note.
+
+> [!WARNING]
+> This is a warning.
+```
+
+
+Example:
+```
+<!-- This content will not appear in the rendered Markdown -->
+```
