@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -9,7 +10,9 @@ import (
 
 var ShowAST bool
 
-func Hello(logger logr.Logger) error {
+func Hello(ctx context.Context) error {
+	logger := logr.FromContextOrDiscard(ctx)
+
 	input, err := os.ReadFile("testdata/input.md")
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)

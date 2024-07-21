@@ -2,11 +2,13 @@ package core
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap/zaptest"
 )
@@ -55,8 +57,11 @@ This is a test input file.`)
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, loggerKey{}, logger)
+
 	ShowAST = false
-	err = Hello(logger)
+	err = Hello(ctx)
 	if err != nil {
 		t.Fatalf("Hello() error = %v", err)
 	}
@@ -82,8 +87,10 @@ This is a test input file.`)
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 
+	ctx = context.WithValue(ctx, loggerKey{}, logger)
+
 	ShowAST = true
-	err = Hello(logger)
+	err = Hello(ctx)
 	if err != nil {
 		t.Fatalf("Hello() error = %v", err)
 	}
@@ -101,4 +108,11 @@ This is a test input file.`)
 	if !strings.Contains(output, "AST structure:") {
 		t.Errorf("AST structure should be printed when ShowAST is true")
 	}
+}
+
+type loggerKey struct{}
+
+func LoggerFrom(ctx context.Context) logr.Logger {
+	logger, _ := ctx.Value(loggerKey{}).(logr.Logger)
+	return logger
 }

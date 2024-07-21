@@ -10,9 +10,7 @@ var helloCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long:  `A longer description that spans multiple lines and likely contains examples and usage of using your command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := LoggerFrom(cmd.Context())
-		logger.Info("Running hello command")
-		return core.Hello(logger)
+		return core.Hello(cmd.Context())
 	},
 }
 
