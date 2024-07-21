@@ -61,6 +61,10 @@ func main() {
    - Another subitem
 2. Second item
 
+H<sub>2</sub>O
+
+[Link to Headers](#headers)
+
 Term
 : Definition
 
