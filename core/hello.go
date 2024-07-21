@@ -7,14 +7,16 @@ import (
 	"github.com/go-logr/logr"
 )
 
-func Hello(logger logr.Logger, showAST bool) error {
+var ShowAST bool
+
+func Hello(logger logr.Logger) error {
 	input, err := os.ReadFile("testdata/input.md")
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
 	var astPrinter ASTPrinter
-	if showAST {
+	if ShowAST {
 		astPrinter = &DefaultASTPrinter{}
 	}
 	frontMatterProcessor := &DefaultFrontMatterProcessor{}

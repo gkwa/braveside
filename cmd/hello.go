@@ -5,8 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var showAST bool
-
 var helloCmd = &cobra.Command{
 	Use:   "hello",
 	Short: "A brief description of your command",
@@ -14,11 +12,11 @@ var helloCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := LoggerFrom(cmd.Context())
 		logger.Info("Running hello command")
-		return core.Hello(logger, showAST)
+		return core.Hello(logger)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(helloCmd)
-	helloCmd.Flags().BoolVar(&showAST, "show-ast", false, "Show AST structure")
+	helloCmd.Flags().BoolVar(&core.ShowAST, "show-ast", false, "Show AST structure")
 }

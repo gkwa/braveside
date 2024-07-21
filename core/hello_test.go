@@ -54,7 +54,8 @@ This is a test input file.`)
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err = Hello(logger, false)
+	ShowAST = false
+	err = Hello(logger)
 	if err != nil {
 		t.Fatalf("Hello() error = %v", err)
 	}
@@ -74,13 +75,14 @@ This is a test input file.`)
 	}
 
 	if strings.Contains(output, "AST structure:") {
-		t.Errorf("AST structure should not be printed when showAST is false")
+		t.Errorf("AST structure should not be printed when ShowAST is false")
 	}
 
 	r, w, _ = os.Pipe()
 	os.Stdout = w
 
-	err = Hello(logger, true)
+	ShowAST = true
+	err = Hello(logger)
 	if err != nil {
 		t.Fatalf("Hello() error = %v", err)
 	}
@@ -96,6 +98,6 @@ This is a test input file.`)
 	output = buf.String()
 
 	if !strings.Contains(output, "AST structure:") {
-		t.Errorf("AST structure should be printed when showAST is true")
+		t.Errorf("AST structure should be printed when ShowAST is true")
 	}
 }
