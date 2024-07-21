@@ -7,8 +7,37 @@ import (
 	"os/exec"
 
 	"github.com/go-logr/logr"
+	"github.com/yuin/goldmark/ast"
 	"gopkg.in/yaml.v3"
 )
+
+type DefaultASTPrinter struct{}
+
+func (p *DefaultASTPrinter) PrintAST(doc ast.Node, input []byte) {
+	fmt.Println("AST structure:")
+	printNode(doc, input, 0)
+}
+
+type DefaultFrontMatterProcessor struct{}
+
+func (p *DefaultFrontMatterProcessor) ProcessFrontMatter(metaData map[string]interface{}) (string, error) {
+	var frontMatterBuf bytes.Buffer
+	encoder := yaml.NewEncoder(&frontMatterBuf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(metaData); err != nil {
+		return "", err
+	}
+	encoder.Close()
+	return frontMatterBuf.String(), nil
+}
+
+type DefaultMarkdownRenderer struct{}
+
+func (r *DefaultMarkdownRenderer) RenderMarkdown(doc ast.Node, source []byte) ([]byte, error) {
+	var contentBuf bytes.Buffer
+	renderMarkdown(&contentBuf, doc, source, 0)
+	return contentBuf.Bytes(), nil
+}
 
 func Hello(logger logr.Logger, showAST bool) error {
 	input, err := os.ReadFile("testdata/input.md")
@@ -16,8 +45,12 @@ func Hello(logger logr.Logger, showAST bool) error {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
-	processor := NewMarkdownProcessor()
-	output, err := processor.ProcessMarkdown(input, showAST)
+	astPrinter := &DefaultASTPrinter{}
+	frontMatterProcessor := &DefaultFrontMatterProcessor{}
+	markdownRenderer := &DefaultMarkdownRenderer{}
+
+	processor := NewMarkdownProcessor(astPrinter, frontMatterProcessor, markdownRenderer)
+	output, err := processor.ProcessMarkdown(input)
 	if err != nil {
 		return fmt.Errorf("failed to process markdown: %w", err)
 	}
@@ -34,35 +67,6 @@ func Hello(logger logr.Logger, showAST bool) error {
 
 	fmt.Println(diff)
 	return nil
-}
-
-func (mp *MarkdownProcessor) ProcessMarkdown(input []byte, showAST bool) ([]byte, error) {
-	doc, metaData := mp.parse(input)
-
-	if showAST {
-		fmt.Println("AST structure:")
-		printNode(doc, input, 0)
-	}
-
-	var contentBuf bytes.Buffer
-	renderMarkdown(&contentBuf, doc, input, 0)
-
-	var output []byte
-	if len(metaData) == 0 {
-		output = contentBuf.Bytes()
-	} else {
-		var frontMatterBuf bytes.Buffer
-		encoder := yaml.NewEncoder(&frontMatterBuf)
-		encoder.SetIndent(2)
-		if err := encoder.Encode(metaData); err != nil {
-			return nil, err
-		}
-		encoder.Close()
-
-		output = []byte(fmt.Sprintf("---\n%s---\n\n%s", frontMatterBuf.String(), contentBuf.String()))
-	}
-
-	return output, nil
 }
 
 func compareDiff(logger logr.Logger, file1, file2 string) (string, error) {
