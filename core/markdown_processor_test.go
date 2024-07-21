@@ -66,7 +66,7 @@ The square of a number is represented as n<sup>2</sup>.
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Skipf("Skipping test %s in short mode", tt.name)
-			
+
 			output, err := processor.ProcessMarkdown([]byte(tt.input))
 			if err != nil {
 				t.Fatalf("ProcessMarkdown() error = %v", err)
@@ -77,4 +77,3 @@ The square of a number is represented as n<sup>2</sup>.
 		})
 	}
 }
-

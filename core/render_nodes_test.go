@@ -263,4 +263,3 @@ func TestRenderTable(t *testing.T) {
 		})
 	}
 }
-
