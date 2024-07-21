@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -20,7 +21,7 @@ func TestHello(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	inputPath := tempDir + "/input.md"
+	inputPath := filepath.Join(tempDir, "input.md")
 	inputContent := []byte(`# Test Input
 
 This is a test input file.`)
