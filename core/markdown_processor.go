@@ -6,7 +6,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 )
 
@@ -19,9 +18,6 @@ func NewMarkdownProcessor() *MarkdownProcessor {
 		goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
-		),
-		goldmark.WithRendererOptions(
-			html.WithUnsafe(),
 		),
 	)
 	return &MarkdownProcessor{md: md}
