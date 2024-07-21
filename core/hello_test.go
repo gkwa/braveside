@@ -72,4 +72,30 @@ This is a test input file.`)
 	if !strings.Contains(output, "No differences found between input.md and output.md") {
 		t.Errorf("Expected 'No differences found' message, got: %s", output)
 	}
+
+	if strings.Contains(output, "AST structure:") {
+		t.Errorf("AST structure should not be printed when showAST is false")
+	}
+
+	r, w, _ = os.Pipe()
+	os.Stdout = w
+
+	err = Hello(logger, true)
+	if err != nil {
+		t.Fatalf("Hello() error = %v", err)
+	}
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	buf.Reset()
+	_, err = buf.ReadFrom(r)
+	if err != nil {
+		t.Fatalf("Failed to read captured output: %v", err)
+	}
+	output = buf.String()
+
+	if !strings.Contains(output, "AST structure:") {
+		t.Errorf("AST structure should be printed when showAST is true")
+	}
 }

@@ -13,7 +13,10 @@ func Hello(logger logr.Logger, showAST bool) error {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
-	astPrinter := &DefaultASTPrinter{}
+	var astPrinter ASTPrinter
+	if showAST {
+		astPrinter = &DefaultASTPrinter{}
+	}
 	frontMatterProcessor := &DefaultFrontMatterProcessor{}
 	markdownRenderer := &DefaultMarkdownRenderer{}
 
