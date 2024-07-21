@@ -5,23 +5,10 @@ import (
 
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
-	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
-
-type ASTPrinter interface {
-	PrintAST(doc ast.Node, input []byte)
-}
-
-type FrontMatterProcessor interface {
-	ProcessFrontMatter(metaData map[string]interface{}) (string, error)
-}
-
-type MarkdownRenderer interface {
-	RenderMarkdown(doc ast.Node, source []byte) ([]byte, error)
-}
 
 type MarkdownProcessor struct {
 	md                   goldmark.Markdown
