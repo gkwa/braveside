@@ -16,5 +16,4 @@ var helloCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(helloCmd)
-	helloCmd.Flags().BoolVar(&core.ShowAST, "show-ast", false, "Show AST structure")
 }

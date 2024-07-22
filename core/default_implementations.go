@@ -2,18 +2,10 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/yuin/goldmark/ast"
 	"gopkg.in/yaml.v3"
 )
-
-type DefaultASTPrinter struct{}
-
-func (p *DefaultASTPrinter) PrintAST(doc ast.Node, input []byte) {
-	fmt.Println("AST structure:")
-	printNode(doc, input, 0)
-}
 
 type DefaultFrontMatterProcessor struct{}
 

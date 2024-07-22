@@ -4,10 +4,6 @@ import (
 	"github.com/yuin/goldmark/ast"
 )
 
-type ASTPrinter interface {
-	PrintAST(doc ast.Node, input []byte)
-}
-
 type FrontMatterProcessor interface {
 	ProcessFrontMatter(metaData map[string]interface{}) (string, error)
 }

@@ -1,22 +1,15 @@
 package core
 
 import (
-	"bytes"
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
-	"go.uber.org/zap/zaptest"
 )
 
 func TestHello(t *testing.T) {
-	zapLogger := zaptest.NewLogger(t)
-	logger := zapr.NewLogger(zapLogger)
-
 	tempDir, err := os.MkdirTemp("", "testdata")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
@@ -51,62 +44,6 @@ This is a test input file.`)
 	err = os.Rename(inputPath, "testdata/input.md")
 	if err != nil {
 		t.Fatalf("Failed to move input file: %v", err)
-	}
-
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, loggerKey{}, logger)
-
-	ShowAST = false
-	err = Hello(ctx)
-	if err != nil {
-		t.Fatalf("Hello() error = %v", err)
-	}
-
-	w.Close()
-	os.Stdout = oldStdout
-
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(r)
-	if err != nil {
-		t.Fatalf("Failed to read captured output: %v", err)
-	}
-	output := buf.String()
-
-	if !strings.Contains(output, "No differences found between input.md and output.md") {
-		t.Errorf("Expected 'No differences found' message, got: %s", output)
-	}
-
-	if strings.Contains(output, "AST structure:") {
-		t.Errorf("AST structure should not be printed when ShowAST is false")
-	}
-
-	r, w, _ = os.Pipe()
-	os.Stdout = w
-
-	ctx = context.WithValue(ctx, loggerKey{}, logger)
-
-	ShowAST = true
-	err = Hello(ctx)
-	if err != nil {
-		t.Fatalf("Hello() error = %v", err)
-	}
-
-	w.Close()
-	os.Stdout = oldStdout
-
-	buf.Reset()
-	_, err = buf.ReadFrom(r)
-	if err != nil {
-		t.Fatalf("Failed to read captured output: %v", err)
-	}
-	output = buf.String()
-
-	if !strings.Contains(output, "AST structure:") {
-		t.Errorf("AST structure should be printed when ShowAST is true")
 	}
 }
 

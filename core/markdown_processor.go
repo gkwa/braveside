@@ -12,12 +12,11 @@ import (
 
 type MarkdownProcessor struct {
 	md                   goldmark.Markdown
-	astPrinter           ASTPrinter
 	frontMatterProcessor FrontMatterProcessor
 	markdownRenderer     MarkdownRenderer
 }
 
-func NewMarkdownProcessor(astPrinter ASTPrinter, frontMatterProcessor FrontMatterProcessor, markdownRenderer MarkdownRenderer) *MarkdownProcessor {
+func NewMarkdownProcessor(frontMatterProcessor FrontMatterProcessor, markdownRenderer MarkdownRenderer) *MarkdownProcessor {
 	return &MarkdownProcessor{
 		md: goldmark.New(
 			goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
@@ -25,7 +24,6 @@ func NewMarkdownProcessor(astPrinter ASTPrinter, frontMatterProcessor FrontMatte
 				parser.WithAutoHeadingID(),
 			),
 		),
-		astPrinter:           astPrinter,
 		frontMatterProcessor: frontMatterProcessor,
 		markdownRenderer:     markdownRenderer,
 	}
@@ -35,10 +33,6 @@ func (mp *MarkdownProcessor) ProcessMarkdown(input []byte) ([]byte, error) {
 	context := parser.NewContext()
 	doc := mp.md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
 	metaData := meta.Get(context)
-
-	if mp.astPrinter != nil {
-		mp.astPrinter.PrintAST(doc, input)
-	}
 
 	renderedContent, err := mp.markdownRenderer.RenderMarkdown(doc, input)
 	if err != nil {
