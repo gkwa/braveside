@@ -58,9 +58,10 @@ The square of a number is represented as n<sup>2</sup>.
 		},
 	}
 
+	astPrinter := &DefaultASTPrinter{}
 	frontMatterProcessor := &DefaultFrontMatterProcessor{}
 	markdownRenderer := &DefaultMarkdownRenderer{}
-	processor := NewMarkdownProcessor(frontMatterProcessor, markdownRenderer)
+	processor := NewMarkdownProcessor(astPrinter, frontMatterProcessor, markdownRenderer)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

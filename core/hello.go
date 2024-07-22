@@ -18,17 +18,14 @@ func Hello(ctx context.Context) error {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
 
+	var astPrinter ASTPrinter
+	if ShowAST {
+		astPrinter = &DefaultASTPrinter{}
+	}
 	frontMatterProcessor := &DefaultFrontMatterProcessor{}
 	markdownRenderer := &DefaultMarkdownRenderer{}
-	var processor *MarkdownProcessor
 
-	if ShowAST {
-		astPrinter := &DefaultASTPrinter{}
-		processor = NewMarkdownProcessorWithASTPrinter(astPrinter, frontMatterProcessor, markdownRenderer)
-	} else {
-		processor = NewMarkdownProcessor(frontMatterProcessor, markdownRenderer)
-	}
-
+	processor := NewMarkdownProcessor(astPrinter, frontMatterProcessor, markdownRenderer)
 	output, err := processor.ProcessMarkdown(input)
 	if err != nil {
 		return fmt.Errorf("failed to process markdown: %w", err)
