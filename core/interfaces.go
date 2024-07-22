@@ -15,3 +15,7 @@ type FrontMatterProcessor interface {
 type MarkdownRenderer interface {
 	RenderMarkdown(doc ast.Node, source []byte) ([]byte, error)
 }
+
+type NoopASTPrinter struct{}
+
+func (p *NoopASTPrinter) PrintAST(doc ast.Node, input []byte) {}

@@ -17,7 +17,7 @@ type MarkdownProcessor struct {
 	markdownRenderer     MarkdownRenderer
 }
 
-func NewMarkdownProcessor(astPrinter ASTPrinter, frontMatterProcessor FrontMatterProcessor, markdownRenderer MarkdownRenderer) *MarkdownProcessor {
+func NewMarkdownProcessor(frontMatterProcessor FrontMatterProcessor, markdownRenderer MarkdownRenderer) *MarkdownProcessor {
 	return &MarkdownProcessor{
 		md: goldmark.New(
 			goldmark.WithExtensions(extension.GFM, extension.DefinitionList, meta.Meta),
@@ -25,10 +25,16 @@ func NewMarkdownProcessor(astPrinter ASTPrinter, frontMatterProcessor FrontMatte
 				parser.WithAutoHeadingID(),
 			),
 		),
-		astPrinter:           astPrinter,
+		astPrinter:           &NoopASTPrinter{},
 		frontMatterProcessor: frontMatterProcessor,
 		markdownRenderer:     markdownRenderer,
 	}
+}
+
+func NewMarkdownProcessorWithASTPrinter(astPrinter ASTPrinter, frontMatterProcessor FrontMatterProcessor, markdownRenderer MarkdownRenderer) *MarkdownProcessor {
+	mp := NewMarkdownProcessor(frontMatterProcessor, markdownRenderer)
+	mp.astPrinter = astPrinter
+	return mp
 }
 
 func (mp *MarkdownProcessor) ProcessMarkdown(input []byte) ([]byte, error) {
@@ -36,9 +42,7 @@ func (mp *MarkdownProcessor) ProcessMarkdown(input []byte) ([]byte, error) {
 	doc := mp.md.Parser().Parse(text.NewReader(input), parser.WithContext(context))
 	metaData := meta.Get(context)
 
-	if mp.astPrinter != nil {
-		mp.astPrinter.PrintAST(doc, input)
-	}
+	mp.astPrinter.PrintAST(doc, input)
 
 	renderedContent, err := mp.markdownRenderer.RenderMarkdown(doc, input)
 	if err != nil {
