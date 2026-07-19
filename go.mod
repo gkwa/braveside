@@ -2,7 +2,7 @@ module github.com/gkwa/braveside
 
 go 1.26.0
 
-toolchain go1.26.3
+toolchain go1.26.5
 
 require (
 	github.com/fatih/color v1.19.0
